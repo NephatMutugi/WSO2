@@ -1,0 +1,84 @@
+<sequence xmlns="http://ws.apache.org/ns/synapse" name="tokenservice">
+    <property expression="//LoginRequest/username" name="userName" scope="default" type="STRING"/>
+    <property expression="//LoginRequest/password" name="password" scope="default" type="STRING"/>
+    <property name="usernamePassword" expression="fn:concat(get-property('userName'),':', get-property('password'))"/>
+    <property name="encodedMessage" expression="base64Encode(get-property('usernamePassword'))" scope="default" type="STRING"/>
+
+    <property expression="get-property('registry', 'gov:/apimgt/configs/ocp/@tokenGeneratorUrl')" name="url" scope="default" type="STRING"/>
+    <payloadFactory media-type="json">
+        <format>
+        {"grant_type":"client_credentials"}
+        </format>
+        <args/>
+    </payloadFactory>
+    <property action="remove" name="TRANSPORT_HEADERS" scope="axis2"/>
+    <property action="remove" name="EXCESS_TRANSPORT_HEADERS" scope="axis2"/>
+    <property name="messageType" scope="axis2" type="STRING" value="application/x-www-form-urlencoded"/>
+    <property name="HTTP_METHOD" scope="axis2" type="STRING" value="POST"></property>
+    <header expression="fn:concat('Basic ', get-property('encodedMessage'))" name="Authorization" scope="transport"/>
+    <property expression="get-property('url')" name="uri.var.httpendpointurl" scope="default" type="STRING"/>
+    <log>
+        <property expression="get-property('url')" name="url---------------------------------------"/>
+        <property expression="get-property('uri.var.httpendpointurl')" name="uri.var.httpendpointurl---------------------------------------"/>
+    </log>
+    <call blocking="true" description="Create Token Request">
+        <endpoint>
+            <http method="post" uri-template="{uri.var.httpendpointurl}">
+                <suspendOnFailure>
+                    <initialDuration>-1</initialDuration>
+                    <progressionFactor>1</progressionFactor>
+                </suspendOnFailure>
+                <markForSuspension>
+                    <retriesBeforeSuspension>0</retriesBeforeSuspension>
+                </markForSuspension>
+            </http>
+        </endpoint>
+    </call>
+    <log level="full"/>
+    <filter regex="200" source="get-property('axis2', 'HTTP_SC')">
+        <then>
+            <property expression="get-property('axis2', 'HTTP_SC')" name="httpResponse" scope="default" type="STRING"/>
+            <log level="custom">
+                <property expression="get-property('httpResponse')" name="httpResponse"/>
+            </log>
+            <property name="genToken" expression="json-eval($.access_token)" scope="default" type="STRING"/>
+            <property name="finalToken" expression="fn:concat('Bearer',' ', get-property('genToken'))"/>
+            <!-- <arg evaluator="json" expression="$.access_token"/> -->
+            <payloadFactory media-type="xml">
+                <format>
+                    <LoginResponse>
+                        <message>Authorized</message>
+                        <username>$2</username>
+                        <token>$1</token>
+                    </LoginResponse>
+                </format>
+                <args>
+                    <arg evaluator="xml" expression="get-property('finalToken')"/>
+                    <arg evaluator="xml" expression="get-property('userName')"/>
+                </args>
+            </payloadFactory>
+            <property name="HTTP_SC" value="200" scope="axis2" type="STRING"/>
+            <property name="Access-Control-Allow-Origin" value="*" scope="transport" type="STRING"/>
+            <property name="messageType" scope="axis2" value="application/xml"/>
+            <respond/>
+        </then>
+        <else>
+            <payloadFactory media-type="xml">
+                <format>
+                    <LoginResponse>
+                        <message>Invalid Username or Password</message>
+                        <username>secech</username>
+                        <token>Unauthorized</token>
+                    </LoginResponse>
+                </format>
+                <args>
+                    <arg evaluator="json" expression="$.access_token"/>
+                </args>
+            </payloadFactory>
+            <property name="HTTP_SC" value="200" scope="axis2" type="STRING"/>
+            <property name="Access-Control-Allow-Origin" value="*" scope="transport" type="STRING"/>
+            <property name="messageType" scope="axis2" value="application/xml"/>
+            <respond/>
+        </else>
+    </filter>
+</sequence>
