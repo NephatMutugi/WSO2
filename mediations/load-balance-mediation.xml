@@ -1,0 +1,46 @@
+<sequence name="Modefin Loadbalancer">
+  <property name="url1" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/test@url1')"/>
+  <property name="url2" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/test@url2')"/>
+  <property name="REST_URL_POSTFIX" scope="axis2" action="remove" description="REST_URL_POSTFIX"/>
+  <property name="Authorization" value="Basic YWRtaW46YWRtaW4=" scope="transport"/>
+  <property name="Content-Type" value="application/xml" scope="transport"/>
+  <property expression="get-property('url1')" name="uri.var.httpendpointurl1" scope="default" type="STRING"/>
+  <property expression="get-property('url2')" name="uri.var.httpendpointurl2" scope="default" type="STRING"/>
+  
+  <log level="full"/>
+  <call blocking="true" description="Modefin Request">
+    <log>
+      <property expression="get-property('uri.var.httpendpointurl2')" name="CALLED---------------------------------------"/>
+    </log>
+    <endpoint>
+      <loadbalance endpointName="loadBalancedEndpoint">
+        <endpoint>
+          <http method="post" uri-template="{uri.var.httpendpointurl1}">
+            <timeout>30000</timeout>
+            <suspendOnFailure>
+              <initialDuration>-1</initialDuration>
+              <progressionFactor>1</progressionFactor>
+            </suspendOnFailure>
+            <markForSuspension>
+              <retriesBeforeSuspension>0</retriesBeforeSuspension>
+            </markForSuspension>
+          </http>
+        </endpoint>
+        <endpoint>
+          <http method="post" uri-template="{uri.var.httpendpointurl2}">
+            <timeout>30000</timeout>
+            <suspendOnFailure>
+              <initialDuration>-1</initialDuration>
+              <progressionFactor>1</progressionFactor>
+            </suspendOnFailure>
+            <markForSuspension>
+              <retriesBeforeSuspension>0</retriesBeforeSuspension>
+            </markForSuspension>
+          </http>
+        </endpoint>
+      </loadbalance>
+    </endpoint>
+    <respond/>
+  </call>
+  <log level="full"/>
+</sequence>
