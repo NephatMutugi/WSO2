@@ -8,7 +8,7 @@
   <property expression="get-property('url2')" name="uri.var.httpendpointurl2" scope="default" type="STRING"/>
   
   <log level="full"/>
-  <call blocking="true" description="Modefin Request">
+  <call blocking="true" description="Modefin Request" onError="errorHandlingSequence">
     <log>
       <property expression="get-property('uri.var.httpendpointurl2')" name="CALLED---------------------------------------"/>
     </log>
@@ -16,26 +16,18 @@
       <loadbalance endpointName="loadBalancedEndpoint">
         <endpoint>
           <http method="post" uri-template="{uri.var.httpendpointurl1}">
-            <timeout>30000</timeout>
-            <suspendOnFailure>
-              <initialDuration>-1</initialDuration>
-              <progressionFactor>1</progressionFactor>
-            </suspendOnFailure>
-            <markForSuspension>
-              <retriesBeforeSuspension>0</retriesBeforeSuspension>
-            </markForSuspension>
+            <timeout>
+              <duration>30000</duration>
+              <responseAction>fault</responseAction>
+            </timeout>
           </http>
         </endpoint>
         <endpoint>
           <http method="post" uri-template="{uri.var.httpendpointurl2}">
-            <timeout>30000</timeout>
-            <suspendOnFailure>
-              <initialDuration>-1</initialDuration>
-              <progressionFactor>1</progressionFactor>
-            </suspendOnFailure>
-            <markForSuspension>
-              <retriesBeforeSuspension>0</retriesBeforeSuspension>
-            </markForSuspension>
+            <timeout>
+              <duration>30000</duration>
+              <responseAction>fault</responseAction>
+            </timeout>
           </http>
         </endpoint>
       </loadbalance>
@@ -43,4 +35,21 @@
     <respond/>
   </call>
   <log level="full"/>
+</sequence>
+
+<sequence name="errorHandlingSequence">
+  <log level="custom">
+    <property name="ERROR" value="Error calling endpoint - triggered error handling sequence"/>
+  </log>
+
+  <payloadFactory media-type="xml">
+    <format>
+      <response>
+        <status>FAILED</status>
+        <message>Error while making the API call. Please try again later.</message>
+      </response>
+    </format>
+    </args>
+  </payloadFactory>
+  <respond/>
 </sequence>
