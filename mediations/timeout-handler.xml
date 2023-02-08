@@ -1,0 +1,14 @@
+<sequence name="fault-sequence">
+  <!-- Custom logic for handling timeouts -->
+  <log level="custom">
+    <property name="ERROR" value="Error calling endpoint - triggered error handling sequence"/>
+  </log>
+  <payloadFactory media-type="xml">
+    <format>
+      <trasactionresponse>
+         <message>FAILED. Error while making the API call. Please try again later.</message>
+      </trasactionresponse>
+    </format>
+  </payloadFactory>
+  <respond/>
+</sequence>
