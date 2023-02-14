@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="MobiCashToRRAIncoming" trace="disable"
+    xmlns="http://ws.apache.org/ns/synapse">
+    <property expression="fn:concat(get-property('SYSTEM_DATE', 'yyyy-MM-dd'),' ',get-property('SYSTEM_DATE', 'HH:MM:ss'))" name="currentDate" scope="default" type="STRING"/>
+    <property name="UserName" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/h2h@InterswitchUserName')"/>
+    <property name="Password" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/h2h@InterswitchPassword')"/>
+    <property name="CompanyId" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/h2h@T24CompanyCode')"/>
+    <property name="InterswitchUrl" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/h2h@InterswitchUrl')"/>
+    <property name="ChannelId" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/h2h@MobiCashChannelId')"/>
+    <property name="RRABillerId" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/h2h@RRABillerId')"/>
+    <property name="RRAVALServiceId" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/h2h@RRAVALServiceId')"/>
+    <property name="RRAMobiCashNOTServiceId" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/h2h@RRAMobiCashNOTServiceId')"/>
+    <property name="RRAMobiCashNOTBillerId" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/h2h@RRAMobiCashNOTBillerId')"/>
+    <property name="MessageTypeIndicator" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/h2h@MessageTypeIndicator')"/>
+    <property name="TimeStamp" scope="default" type="STRING" expression="fn:concat(get-property('SYSTEM_DATE', 'dd/MM/yyyy'),' ',get-property('SYSTEM_DATE', 'HH:MM:ss'))"/>
+    <property name="DebitAccount" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/h2h@RRAMobicashDebitAccount')"/>
+    <property name="MobileNumber" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/h2h@RRAMobicashMobileNumber')"/>
+    <property name="Currency" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/h2h@RRAMobicashCurrency')"/>
+    <property name="PaymentTypeNo" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/h2h@MobiCashPaymentTypeNo')"/>
+    <property expression="fn:concat(get-property('SYSTEM_DATE', 'yyyy-MM-dd'),' ',get-property('SYSTEM_DATE', 'HH:MM:ss'))" name="SessionId" scope="default" type="STRING"/>
+    <property name="McRefNo" expression="json-eval($.mcRefNo)" scope="default" type="STRING"/>
+    <property name="RraRef" expression="json-eval($.rraRef)" scope="default" type="STRING"/>
+    <property name="TransactionReference" expression="json-eval($.mcRefNo)" scope="default" type="STRING"/>
+    <property name="TaxSlipNumber" expression="json-eval($.rraRef)" scope="default" type="STRING"/>
+    <property name="Amount" expression="json-eval($.amount)" scope="default" type="STRING"/>
+    <property name="DecId" expression="json-eval($.decId)" scope="default" type="STRING"/>
+    <property name="TinNo" expression="json-eval($.tinNo)" scope="default" type="STRING"/>
+    <property name="companyCode" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp@companyCode')"/>
+    <log level="full"/>
+    <payloadFactory media-type="xml">
+        <format>
+            <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                xmlns:web="http://webserviceserver.billerengine.kcb/">
+                <soapenv:Header></soapenv:Header>
+                <soapenv:Body>
+                    <web:KCBBillersWebserviceInterface>
+                        <UserName xmlns="">$1</UserName>
+                        <Password xmlns="">$2</Password>
+                        <CompanyId xmlns="">$3</CompanyId>
+                        <ChannelId xmlns="">$4</ChannelId>
+                        <BillerId xmlns="">$5</BillerId>
+                        <ServiceId xmlns="">$6</ServiceId>
+                        <SessionId xmlns="">$7</SessionId>
+                        <MobileNo xmlns="">$8</MobileNo>
+                        <TimeStamp xmlns="">$9</TimeStamp>
+                        <MessageTypeIndicator xmlns="">$10</MessageTypeIndicator>
+                        <ServiceParams xmlns="">
+                            <TaxSlipNumber xmlns="">$11</TaxSlipNumber>
+                        </ServiceParams>
+                    </web:KCBBillersWebserviceInterface>
+                </soapenv:Body>
+            </soapenv:Envelope>
+        </format>
+        <args>
+            <arg evaluator="xml" expression="get-property('UserName')"/>
+            <arg evaluator="xml" expression="get-property('Password')"/>
+            <arg evaluator="xml" expression="get-property('CompanyId')"/>
+            <arg evaluator="xml" expression="get-property('ChannelId')"/>
+            <arg evaluator="xml" expression="get-property('RRABillerId')"/>
+            <arg evaluator="xml" expression="get-property('RRAVALServiceId')"/>
+            <arg evaluator="xml" expression="get-property('SessionId')"/>
+            <arg evaluator="xml" expression="get-property('MobileNumber')"/>
+            <arg evaluator="xml" expression="get-property('currentDate')"/>
+            <arg evaluator="xml" expression="get-property('MessageTypeIndicator')"/>
+            <arg evaluator="xml" expression="get-property('TaxSlipNumber')"/>
+        </args>
+    </payloadFactory>
+    <property name="HTTP_SC" value="200" scope="axis2" type="STRING" />
+    <property name="Access-Control-Allow-Origin" value="*" scope="transport" type="STRING" />
+    <property name="messageType" value="application/soap+xml" scope="axis2" type="STRING"/>
+    <property name="ContentType" value="application/soap+xml" scope="axis2" type="STRING"/>
+    <property name="CONTENT_TYPE" value="application/soap+xml" scope="axis2" type="STRING"/>
+    <property expression="get-property('InterswitchUrl')" name="uri.var.httpendpointurl" scope="default" type="STRING"/>
+    <log>
+        <property expression="get-property('uri.var.httpendpointurl')" name="VALIDATION Interswitch URL---------------------------------------"/>
+    </log>
+    <log level="full"/>
+
+    <call blocking="true" description="RRA MOBICASH VALIDATION INTERSWITCH">
+        <endpoint>
+            <http method="post" uri-template="{uri.var.httpendpointurl}">
+                <suspendOnFailure>
+                    <initialDuration>-1</initialDuration>
+                    <progressionFactor>1</progressionFactor>
+                </suspendOnFailure>
+                <markForSuspension>
+                    <retriesBeforeSuspension>0</retriesBeforeSuspension>
+                </markForSuspension>
+            </http>
+        </endpoint>
+    </call>
+    <log level="full"/>
+
+    <filter regex="200" source="get-property('axis2', 'HTTP_SC')">
+        <property name="ISStatusCode" expression="//*[local-name()='statusCode']" scope="default" type="STRING"/>
+        <filter regex="00" source="get-property('ISStatusCode')">
+            <then>
+                <payloadFactory media-type="xml">
+                    <format>
+                        <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                            xmlns:web="http://webserviceserver.billerengine.kcb/">
+                            <soapenv:Header/>
+                            <soapenv:Body>
+                                <web:KCBBillersWebserviceInterface>
+                                    <UserName xmlns="">$1</UserName>
+                                    <Password xmlns="">$2</Password>
+                                    <CompanyId xmlns="">$3</CompanyId>
+                                    <ChannelId xmlns="">$4</ChannelId>
+                                    <BillerId xmlns="">$5</BillerId>
+                                    <ServiceId xmlns="">$6</ServiceId>
+                                    <SessionId xmlns="">$7</SessionId>
+                                    <MobileNo xmlns="">$8</MobileNo>
+                                    <TimeStamp xmlns="">$9</TimeStamp>
+                                    <MessageTypeIndicator xmlns="">$10</MessageTypeIndicator>
+                                    <ServiceParams xmlns="">
+                                        <PaymentTypeNo xmlns="">$11</PaymentTypeNo>
+                                        <TaxpayerIdNumber xmlns="">$12</TaxpayerIdNumber>
+                                        <DocumentIdNumber xmlns="">$13</DocumentIdNumber>
+                                        <DebitAccount xmlns="">$14</DebitAccount>
+                                        <AccountNumber xmlns="">$15</AccountNumber>
+                                        <CreditAccount xmlns="">$15</CreditAccount>
+                                        <TransactionAmount xmlns="">$16</TransactionAmount>
+                                        <TransactionReference xmlns="">$17</TransactionReference>
+                                        <TransactionDate xmlns="">$9</TransactionDate>
+                                        <Currency xmlns="">$18</Currency>
+                                        <TaxSlipNumber xmlns="">$23</TaxSlipNumber>
+                                        <AssessNo xmlns="">$20</AssessNo>
+                                        <CustomerFullName xmlns="">$21</CustomerFullName>
+                                        <RRAOriginNo xmlns="">$22</RRAOriginNo>
+                                    </ServiceParams>
+                                </web:KCBBillersWebserviceInterface>
+                            </soapenv:Body>
+                            </soapenv:Envelope>
+                    </format>
+                    <args>
+                        <arg evaluator="xml" expression="get-property('UserName')"/>
+                        <arg evaluator="xml" expression="get-property('Password')"/>
+                        <arg evaluator="xml" expression="get-property('CompanyId')"/>
+                        <arg evaluator="xml" expression="get-property('ChannelId')"/>
+                        <arg evaluator="xml" expression="get-property('RRAMobiCashNOTBillerId')"/>
+                        <arg evaluator="xml" expression="get-property('RRAMobiCashNOTServiceId')"/>
+                        <arg evaluator="xml" expression="get-property('McRefNo')"/>
+                        <arg evaluator="xml" expression="get-property('MobileNumber')"/>
+                        <arg evaluator="xml" expression="get-property('currentDate')"/>
+                        <arg evaluator="xml" expression="get-property('MessageTypeIndicator')"/>
+                        <arg evaluator="xml" expression="get-property('PaymentTypeNo')"/>
+                        <arg evaluator="xml" expression="//*[local-name()='TaxpayerIdNumber']"/>
+                        <arg evaluator="xml" expression="//*[local-name()='DocumentIdNumber']"/>
+                        <arg evaluator="xml" expression="get-property('DebitAccount')"/>
+                        <arg evaluator="xml" expression="//*[local-name()='rraCreditAccount']"/>
+                        <arg evaluator="xml" expression="get-property('Amount')"/>
+                        <arg evaluator="xml" expression="get-property('TransactionReference')"/>
+                        <arg evaluator="xml" expression="get-property('Currency')"/>
+                        <arg evaluator="xml" expression="//*[local-name()='TaxSlipNumber']"/>
+                        <arg evaluator="xml" expression="//*[local-name()='AssesNo']"/>
+                        <arg evaluator="xml" expression="//*[local-name()='CustomerFullName']"/>
+                        <arg evaluator="xml" expression="//*[local-name()='RRAOriginNo']"/>
+                        <arg evaluator="xml" expression="get-property('TaxSlipNumber')"/>
+                    </args>
+                </payloadFactory>
+                <property name="HTTP_SC" value="200" scope="axis2" type="STRING" />
+                <property name="Access-Control-Allow-Origin" value="*" scope="transport" type="STRING" />
+                <property name="messageType" value="application/soap+xml" scope="axis2" type="STRING"/>
+                <property name="ContentType" value="application/soap+xml" scope="axis2" type="STRING"/>
+                <property name="CONTENT_TYPE" value="application/soap+xml" scope="axis2" type="STRING"/>
+                <property expression="get-property('InterswitchUrl')" name="uri.var.httpendpointurl" scope="default" type="STRING"/>
+                <log>
+                    <property expression="get-property('uri.var.httpendpointurl')" name="NOTIFICATION Interswitch URL---------------------------------------"/>
+                </log>
+                <log level="full"/>
+                <call blocking="true" description="RRA MOBICASH NOTIFICATION INTERSWITCH">
+                    <endpoint>
+                        <http method="post" uri-template="{uri.var.httpendpointurl}">
+                            <suspendOnFailure>
+                                <initialDuration>-1</initialDuration>
+                                <progressionFactor>1</progressionFactor>
+                            </suspendOnFailure>
+                            <markForSuspension>
+                                <retriesBeforeSuspension>0</retriesBeforeSuspension>
+                            </markForSuspension>
+                        </http>
+                    </endpoint>
+                </call> 
+                <log level="full"/>           
+                <filter regex="200" source="get-property('axis2', 'HTTP_SC')">
+                    <property name="ISStatusCode" expression="//*[local-name()='statusCode']" scope="default" type="STRING"/>
+                    <switch source="get-property('ISStatusCode')">
+                        <case regex="00">
+                            <!-- Perform actions for Success -->
+                            <payloadFactory media-type="json">
+                                <format>
+                                    {
+                                        "amount": $1,
+                                        "bprRefNo": "$2",
+                                        "datetime": "$3",
+                                        "decId": "$4",
+                                        "mcRefNo": "$5",
+                                        "message": "$7",
+                                        "rraRefNo": "$6",
+                                        "status": "200"
+                                    }
+                                </format>
+                                <args>
+                                    <arg evaluator="xml" expression="get-property('Amount')"/>
+                                    <arg evaluator="xml" expression="//*[local-name()='originalRefNo']"/>
+                                    <arg evaluator="xml" expression="get-property('TimeStamp')"/>
+                                    <arg evaluator="xml" expression="get-property('DecId')"/>
+                                    <arg evaluator="xml" expression="get-property('TransactionReference')"/>
+                                    <arg evaluator="xml" expression="get-property('RraRef')"/>
+                                    <arg evaluator="xml" expression="//*[local-name()='statusDesc']"/>
+                                </args>
+                            </payloadFactory>
+                            <respond/>
+                        </case>
+
+                        <case regex="51">
+                            <payloadFactory media-type="json">
+                                <format>
+                                    {
+                                        "amount": $1,
+                                        "bprRefNo": "$2",
+                                        "datetime": "$3",
+                                        "decId": "$4",
+                                        "mcRefNo": "$5",
+                                        "message": "$7",
+                                        "rraRefNo": "$6",
+                                        "status": "510"
+                                    }
+                                </format>
+                                <args>
+                                    <arg evaluator="xml" expression="get-property('Amount')"/>
+                                    <arg evaluator="xml" expression="//*[local-name()='billerEngineRefNo']"/>
+                                    <arg evaluator="xml" expression="get-property('TimeStamp')"/>
+                                    <arg evaluator="xml" expression="get-property('DecId')"/>
+                                    <arg evaluator="xml" expression="get-property('TransactionReference')"/>
+                                    <arg evaluator="xml" expression="get-property('RraRef')"/>
+                                    <arg evaluator="xml" expression="//*[local-name()='statusDesc']"/>
+                                </args>
+                            </payloadFactory>
+                            <respond/>
+                        </case>
+
+                        <case regex="94">
+                            <payloadFactory media-type="json">
+                                <format>
+                                    {
+                                        "amount": $1,
+                                        "bprRefNo": "$2",
+                                        "datetime": "$3",
+                                        "decId": "$4",
+                                        "mcRefNo": "$5",
+                                        "message": "$7",
+                                        "rraRefNo": "$6",
+                                        "status": "601"
+                                    }
+                                </format>
+                                <args>
+                                    <arg evaluator="xml" expression="get-property('Amount')"/>
+                                    <arg evaluator="xml" expression="//*[local-name()='billerEngineRefNo']"/>
+                                    <arg evaluator="xml" expression="get-property('TimeStamp')"/>
+                                    <arg evaluator="xml" expression="get-property('DecId')"/>
+                                    <arg evaluator="xml" expression="get-property('TransactionReference')"/>
+                                    <arg evaluator="xml" expression="get-property('RraRef')"/>
+                                    <arg evaluator="xml" expression="//*[local-name()='statusDesc']"/>
+                                </args>
+                            </payloadFactory>
+                            <respond/>
+                        </case>
+
+                        <default>
+                            <payloadFactory media-type="json">
+                                <format>
+                                    {
+                                        "amount": "$6",
+                                        "bprRefNo": "",
+                                        "datetime": "$1",
+                                        "decId": "$2",
+                                        "mcRefNo": "$3",
+                                        "message": "$7",
+                                        "rraRefNo": "$4",
+                                        "status": "710"
+                                    }
+                                </format>
+                                <args>
+                                    <arg evaluator="xml" expression="get-property('TimeStamp')"/>
+                                    <arg evaluator="xml" expression="get-property('DecId')"/>
+                                    <arg evaluator="xml" expression="get-property('TransactionReference')"/>
+                                    <arg evaluator="xml" expression="get-property('RraRef')"/>
+                                    <arg evaluator="xml" expression="//*[local-name()='statusCode']"/>
+                                    <arg evaluator="xml" expression="get-property('Amount')"/>
+                                    <arg evaluator="xml" expression="//*[local-name()='statusDesc']"/>
+                                </args>
+                            </payloadFactory>
+                            <respond/>
+                        </default>
+                    </switch>
+                </filter>
+            </then>
+            <else>
+                <payloadFactory media-type="json">
+                <format>
+                    {
+                        "amount": "$7",
+                        "bprRefNo": "",
+                        "datetime": "$1",
+                        "decId": "$2",
+                        "mcRefNo": "$3",
+                        "message": "$6",
+                        "rraRefNo": "$4",
+                        "status": "710"
+                    }
+                </format>
+                <args>
+                    <arg evaluator="xml" expression="get-property('TimeStamp')"/>
+                    <arg evaluator="xml" expression="get-property('DecId')"/>
+                    <arg evaluator="xml" expression="get-property('TransactionReference')"/>
+                    <arg evaluator="xml" expression="get-property('RraRef')"/>
+                    <arg evaluator="xml" expression="//*[local-name()='statusCode']"/>
+                    <arg evaluator="xml" expression="//*[local-name()='statusDesc']"/>
+                    <arg evaluator="xml" expression="get-property('Amount')"/>
+                </args>
+            </payloadFactory>
+            <log level="full"/>
+            <respond/>
+            </else>
+        </filter>
+    </filter>
+    <respond />
+</sequence>
