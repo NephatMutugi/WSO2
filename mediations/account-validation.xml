@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="SDAAccountValidation" trace="disable"
+    xmlns="http://ws.apache.org/ns/synapse">
+    <property expression="fn:concat(get-property('SYSTEM_DATE', 'yyyy-MM-dd'),'T',get-property('SYSTEM_DATE', 'HH:MM:ss'))" name="currentDate" scope="default" type="STRING"/>
+    <property name="requestRefNum" expression="fn:concat(get-property('SYSTEM_DATE', 'yyyyMMdd'),' ',get-property('SYSTEM_DATE', 'HHMMsss'))"/>
+    <property name="accountNumber" expression="json-eval($.accountnumber)" scope="default" type="STRING"/>
+    <property name="accountInfoUrl" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@accountInfoUrl')"/>
+    <property name="featureCode" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@featureCode')"/>
+    <property name="featureName" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@featureName')"/>
+    <property name="serviceCode" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@serviceCode')"/>
+    <property name="serviceName" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@serviceName')"/>
+    <property name="processingCode" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@processingCode')"/>
+    <property name="serviceSubCategory" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@serviceSubCategory')"/>
+    <property name="minorServiceVersion" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@minorServiceVersion')"/>
+    <property name="channelCode" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@channelCode')"/>
+    <property name="channelName" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@channelName')"/>
+    <property name="routeCode" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@routeCode')"/>
+    <property name="serviceMode" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@serviceMode')"/>
+    <property name="subscribeEvents" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@subscribeEvents')"/>
+    <property name="acNoBusinessKeyType" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@acNoBusinessKeyType')"/>
+    <property name="companyCode" scope="default" type="STRING" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@companyCode')"/>
+
+    <log level="full"/>
+    <payloadFactory media-type="json">
+        <format>
+            {
+                "header": {
+                    "messageID": "$3",
+                    "featureCode": "$4",
+                    "featureName": "$5",
+                    "serviceCode": "$6",
+                    "processingCode": "$7",
+                    "serviceName": "$8",
+                    "serviceSubCategory": "$9",
+                    "minorServiceVersion": "$10",
+                    "channelCode": "$11",
+                    "channelName": "$12",
+                    "routeCode": "$13",
+                    "timeStamp": "$2",
+                    "serviceMode": "$14",
+                    "subscribeEvents": "$15",
+                    "callBackURL": ""
+                },
+                "requestPayload": {
+                    "primaryData": {
+                        "businessKey": "$1",
+                        "businessKeyType": "$16"
+                    },
+                    "additionalData": {
+                        "companyCode": "$17"
+                    }
+                }
+            }
+        </format>
+        <args>
+            <arg evaluator="json" expression="$.accountnumber"/>
+            <arg evaluator="xml" expression="get-property('currentDate')"/>
+            <arg evaluator="xml" expression="get-property('requestRefNum')"/>
+            <arg evaluator="xml" expression="get-property('featureCode')"/>
+            <arg evaluator="xml" expression="get-property('featureName')"/>
+            <arg evaluator="xml" expression="get-property('serviceCode')"/>
+            <arg evaluator="xml" expression="get-property('processingCode')"/>
+            <arg evaluator="xml" expression="get-property('serviceName')"/>
+            <arg evaluator="xml" expression="get-property('serviceSubCategory')"/>
+            <arg evaluator="xml" expression="get-property('minorServiceVersion')"/>
+            <arg evaluator="xml" expression="get-property('channelCode')"/>
+            <arg evaluator="xml" expression="get-property('channelName')"/>
+            <arg evaluator="xml" expression="get-property('routeCode')"/>
+            <arg evaluator="xml" expression="get-property('serviceMode')"/>
+            <arg evaluator="xml" expression="get-property('subscribeEvents')"/>
+            <arg evaluator="xml" expression="get-property('acNoBusinessKeyType')"/>
+            <arg evaluator="xml" expression="get-property('companyCode')"/>
+        </args>
+    </payloadFactory>
+    <property action="remove" name="TRANSPORT_HEADERS" scope="axis2"/>
+    <property action="remove" name="EXCESS_TRANSPORT_HEADERS" scope="axis2"/>
+    <property name="messageType" scope="axis2" type="STRING" value="application/json"/>
+    <header name="Authorization" scope="transport" expression="get-property('registry', 'gov:/apimgt/configs/ocp/accountvalidation@accountValidationBasicAuth')"/>
+    <property expression="get-property('accountInfoUrl')" name="uri.var.httpendpointurl" scope="default" type="STRING"/>
+    <log>
+        <property expression="get-property('accountInfoUrl')" name="accountInfoUrl---------------------------------------"/>
+        <property expression="get-property('uri.var.httpendpointurl')" name="uri.var.httpendpointurl---------------------------------------"/>
+    </log>
+    <log level="full"/>
+    <call blocking="true" description="Validate Account Request">
+        <endpoint>
+            <http method="post" uri-template="{uri.var.httpendpointurl}">
+                <suspendOnFailure>
+                    <initialDuration>-1</initialDuration>
+                    <progressionFactor>1</progressionFactor>
+                </suspendOnFailure>
+                <markForSuspension>
+                    <retriesBeforeSuspension>0</retriesBeforeSuspension>
+                </markForSuspension>
+            </http>
+        </endpoint>
+    </call>
+    <log level="full"/>
+    <property name="statusCodeRes" expression="//header//statusCode" scope="default" type="STRING"/>
+    <filter regex="200" source="get-property('axis2', 'HTTP_SC')">
+        <then>
+            <filter regex="0" source="get-property('statusCodeRes')">
+                <then>
+                    <property expression="get-property('axis2', 'HTTP_SC')" name="httpResponse" scope="default" type="STRING"/>
+                    <log level="custom">
+                        <property expression="get-property('httpResponse')" name="httpResponse"/>
+                    </log>
+                    <payloadFactory media-type="json">
+                        <format>
+                            {
+                                "resp_code": "$1",
+                                "resp_msg": "$2",
+                                "data": {
+                                    "accountname": "$3",
+                                    "accountnumber": "$4",
+                                    "accountcurrency": "$5",
+                                    "accountStatus": "$11",
+                                    "accountholder": {
+                                        "dateofbirth": "$6",
+                                        "first_name": "$7",
+                                        "gender": "$8",
+                                        "last_name": "$9"
+                                    }
+                                }
+                            }
+                        </format>
+                        <args>
+                            <arg evaluator="json" expression="$.header.statusCode"/>
+                            <arg evaluator="json" expression="$.header.statusMessage"/>
+                            <arg evaluator="json" expression="$.responsePayload.accountInfo.accountName"/>
+                            <arg evaluator="xml" expression="get-property('accountNumber')"/>
+                            <arg evaluator="json" expression="$.responsePayload.accountInfo.localCurrency"/>
+                            <arg evaluator="json" expression="$.responsePayload.accountInfo.dateOfBirth"/>
+                            <arg evaluator="json" expression="$.responsePayload.accountInfo.firstName"/>
+                            <arg evaluator="json" expression="$.responsePayload.accountInfo.gender"/>
+                            <arg evaluator="json" expression="$.responsePayload.accountInfo.lastName"/>
+                            <arg evaluator="json" expression="$.responsePayload.accountInfo.destinationMSISDN"/>
+                            <arg evaluator="json" expression="$.responsePayload.accountInfo.accountStatus"/>
+                        </args>
+                    </payloadFactory>
+                    <property name="messageType" value="application/json" scope="axis2" type="STRING" description="message type"/>
+                    <respond/>
+                </then>
+                <else>
+                    <property expression="get-property('axis2', 'HTTP_SC')" name="httpResponse" scope="default" type="STRING"/>
+                    <log level="custom">
+                        <property expression="get-property('httpResponse')" name="httpResponse"/>
+                    </log>
+
+                    <log/>
+                    <payloadFactory media-type="json">
+                        <format>
+                            {
+                                "resp_code": "$1",
+                                "resp_msg": "$2",
+                                "data": {
+                                    "accountname": "",
+                                    "accountnumber": "$3",
+                                    "accountcurrency": "",
+                                    "accountStatus": "",
+                                    "accountholder": ""
+                                }
+                            }
+                        </format>
+                        <args>
+                            <arg evaluator="json" expression="$.header.statusCode"/>
+                            <arg evaluator="json" expression="$.header.statusMessage"/>
+                            <arg evaluator="xml" expression="get-property('accountNumber')"/>
+                        </args>
+                    </payloadFactory>
+                    <property name="messageType" value="application/json" scope="axis2" type="STRING" description="message type"/>
+                    <respond/>
+                </else>
+            </filter>
+        </then>
+        <else>
+            <property expression="get-property('axis2', 'HTTP_SC')" name="httpResponse" scope="default" type="STRING"/>
+            <log level="custom">
+                <property expression="get-property('httpResponse')" name="httpResponse"/>
+            </log>
+
+            <log/>
+            <payloadFactory media-type="json">
+                <format>
+                    {
+                        "resp_code": "$1",
+                        "resp_msg": "$2",
+                        "data": {
+                            "accountname": "",
+                            "accountnumber": "$3",
+                            "accountcurrency": "",
+                            "accountStatus": "",
+                            "accountholder": ""
+                        }
+                    }
+                </format>
+                <args>
+                    <arg evaluator="json" expression="$.header.statusCode"/>
+                    <arg evaluator="json" expression="$.header.statusMessage"/>
+                    <arg evaluator="xml" expression="get-property('accountNumber')"/>
+                </args>
+            </payloadFactory>
+            <property name="messageType" value="application/json" scope="axis2" type="STRING" description="message type"/>
+            <respond/>
+        </else>
+    </filter>
+</sequence>
